@@ -99,12 +99,16 @@ def run(nom, creer_modele, optimizer, donnees, resultats, batch_size=128, epochs
     plot_history(history, nom, save=save)
 
     erreurs_val = 100 * (1 - np.array(history.history["val_accuracy"]))
+    # Erreur du modèle FINAL sur la validation. Sans callback, c'est la valeur de la
+    # dernière epoch ; avec EarlyStopping(restore_best_weights=True), ce sont les
+    # meilleurs poids restaurés (et pas ceux de la dernière epoch).
+    _, acc_val_finale = model.evaluate(x_val, y_val, verbose=0)
     resultats.append({
         "nom": nom,
         "changement": changement,
         "parametres": model.count_params(),
         "epochs": len(erreurs_val),  # peut être < epochs avec un EarlyStopping
-        "erreur_val_%": round(float(erreurs_val[-1]), 2),
+        "erreur_val_%": round(100 * (1 - acc_val_finale), 2),
         "meilleure_erreur_val_%": round(float(erreurs_val.min()), 2),
         "epoch_meilleure": int(erreurs_val.argmin()) + 1,
         "duree_s": round(duree, 1),
